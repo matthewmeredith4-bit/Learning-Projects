@@ -6,11 +6,10 @@ from io import BytesIO
 from datetime import datetime
 
 WATCHLIST = [
-    "jardiance", "empagliflozin", 
+    "jardiance", "empagliflozin", "survodutide",
     "semaglutide", "wegovy", "ozempic", "mounjaro", 
     "obesity", "approval",
 ]
-
 
 SOURCE_URLS = [
     "https://news.google.com/rss/search?q=diabetes+weight+loss+drug+pharma&hl=en-GB&gl=GB&ceid=GB:en",
@@ -28,12 +27,16 @@ found_articles = []
 print("--- Starting Market Access Scan ---")
 
 for url in SOURCE_URLS:
-    print(f"Checking source... {url[:30]}...")
+    print(f"Checking source... {url[:40]}...")
     
     try:
         response = requests.get(url, headers=HEADERS, timeout=10)
         feed = feedparser.parse(BytesIO(response.content))
         
+        
+        source_name = feed.feed.get('title', url)
+        
+        print(f"  > Connected to: {source_name}")
         print(f"  > Downloaded {len(feed.entries)} articles.") 
         
         for entry in feed.entries:
@@ -41,7 +44,7 @@ for url in SOURCE_URLS:
             
             if any(keyword in headline for keyword in WATCHLIST):
                 found_articles.append({
-                    'Source': 'Google News / BBC',
+                    'Source': source_name,  
                     'Title': entry.title,
                     'Link': entry.link,
                     'Found_Date': datetime.now().strftime("%Y-%m-%d")
@@ -73,7 +76,3 @@ if len(found_articles) > 0:
 
     final_df.to_csv(filename, index=False)
     print("Updated successfully.")
-
-else:
-
-    print("No relevant news found today.")
